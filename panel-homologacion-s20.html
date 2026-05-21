@@ -183,6 +183,12 @@ td.vc{font-size:11px;color:#047857;max-width:185px;overflow:hidden;text-overflow
       <div class="lcard-desc">Sube los dos Excel y genera el panel completo. Sin necesidad de Claude.</div>
       <button class="lcard-btn" style="background:#0D9488;">Generar &#8594;</button>
     </div>
+    <div class="lcard" onclick="enterApp('historial')" style="grid-column:1/-1;">
+      <div class="lcard-icon">&#128197;</div>
+      <div class="lcard-title">Historial de semanas</div>
+      <div class="lcard-desc" id="hist-landing-desc">Registro de reportes anteriores. Compara cualquier semana con otra.</div>
+      <button class="lcard-btn" style="background:#7C3AED;">Ver historial &#8594;</button>
+    </div>
 </div>
 </div>
 
@@ -416,16 +422,17 @@ function enterApp(v){
 }
 function _doEnterApp(v){
   document.getElementById('landing').style.display='none';
-  ['gerencia','facturacion','general','generador'].forEach(function(id){
+  ['gerencia','facturacion','general','generador','historial'].forEach(function(id){
     var el=document.getElementById('app-'+id);if(el)el.classList.toggle('visible',v===id);
   });
   if(v==='gerencia')buildG();
   else if(v==='facturacion'){buildF();setTimeout(initCV,200);}
   else if(v==='general')buildGeneral();
   else if(v==='generador')initGen();
+  else if(v==='historial')initHistorial();
 }
 function switchView(){
-  ['gerencia','facturacion','general','generador'].forEach(function(id){
+  ['gerencia','facturacion','general','generador','historial'].forEach(function(id){
     var el=document.getElementById('app-'+id);if(el)el.classList.remove('visible');
   });
   document.getElementById('landing').style.display='';
@@ -631,6 +638,207 @@ function dl15na(){
   var url=URL.createObjectURL(blob);var a=document.createElement('a');
   a.href=url;a.download='Discrepancias_15na_S20_'+_15naCur+'.csv';a.click();URL.revokeObjectURL(url);
 }
+// ════════════════════════════════════════════════════
+// HISTORIAL
+// ════════════════════════════════════════════════════
+var HIST_KEY='vt_homologacion_hist';
+
+function histLoad(){
+  try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]');}catch(e){return [];}
+}
+function histSave(arr){
+  try{localStorage.setItem(HIST_KEY,JSON.stringify(arr));}catch(e){alert('Error al guardar: '+e.message);}
+}
+
+function guardarEnHistorial(){
+  var sem=document.getElementById('gen-semana').value||'Semana ?';
+  var fec=document.getElementById('gen-fecha').value||'';
+  var arr=histLoad();
+  // Check duplicate
+  var exists=arr.find(function(h){return h.semana===sem;});
+  if(exists){
+    if(!confirm('Ya existe un registro para "'+sem+'". ¿Reemplazar?'))return;
+    arr=arr.filter(function(h){return h.semana!==sem;});
+  }
+  var entry={
+    semana:sem, fecha:fec, ts:Date.now(),
+    stats:{
+      vt_total:S.vt_total||0,
+      fact_total:S.fact_total||0,
+      vt_activos_sin:S.vt_activos_sin||0,
+      sin_match_act:S.sin_match_act||0,
+      codigo_incorrecto_act:S.codigo_incorrecto_act||0,
+      fact_act_vt_baja:S.fact_act_vt_baja||0,
+      diff_cli_act:S.diff_cli_act||0,
+      vt_baja_sin:S.vt_baja_sin||0,
+      match_act_ok:S.match_act_ok||0
+    }
+  };
+  arr.push(entry);
+  // Keep last 20
+  if(arr.length>20)arr=arr.slice(arr.length-20);
+  histSave(arr);
+  var msg=document.getElementById('hist-save-msg');
+  if(msg){msg.style.display='block';setTimeout(function(){msg.style.display='none';},3000);}
+  // Refresh landing description
+  histUpdateLanding();
+}
+
+function histUpdateLanding(){
+  var arr=histLoad();
+  var el=document.getElementById('hist-landing-desc');
+  if(el)el.textContent=arr.length>0?arr.length+' semana(s) guardada(s). Última: '+arr[arr.length-1].semana:'Sin registros aún.';
+}
+
+var _histCmpA=null, _histCmpB=null;
+
+function initHistorial(){
+  histUpdateLanding();
+  var arr=histLoad();
+  var empty=document.getElementById('hist-empty');
+  var content=document.getElementById('hist-content');
+  var pills=document.getElementById('hist-pills');
+  if(!arr.length){
+    if(empty)empty.style.display='block';
+    if(content)content.style.display='none';
+    if(pills)pills.innerHTML='';
+    return;
+  }
+  if(empty)empty.style.display='none';
+  if(content)content.style.display='block';
+
+  // Render pills
+  if(pills){
+    pills.innerHTML=arr.map(function(h,i){
+      var sel=(_histCmpA===h.semana||_histCmpB===h.semana);
+      return '<div style="background:'+(sel?'#7C3AED':'#EDE9FE')+';color:'+(sel?'#fff':'#5B21B6')+';'
+        +'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid '+(sel?'#5B21B6':'#C4B5FD')+';transition:all .2s;"'
+        +' data-sem="'+h.semana+'" onclick="histSelectCmp(this.dataset.sem,this)">'+h.semana+'</div>';
+    }).join('');
+  }
+
+  // Render table
+  var tbody=document.getElementById('hist-tbody');
+  if(!tbody)return;
+  var sorted=arr.slice().sort(function(a,b){return a.ts-b.ts;});
+  tbody.innerHTML=sorted.map(function(h,i){
+    var prev=i>0?sorted[i-1]:null;
+    function delta(key){
+      if(!prev)return '';
+      var d=(h.stats[key]||0)-(prev.stats[key]||0);
+      if(d===0)return '<span style="color:#9CA3AF">—</span>';
+      return '<span style="color:'+(d<0?'#059669':'#DC2626');
+      return '<span style="color:'+(d<0?'#059669':'#DC2626')+';">'+(d>0?'+':'')+d+'</span>';
+    }
+    function cell(key){
+      return '<td style="padding:8px 14px;text-align:right;border-bottom:1px solid var(--g2);">'
+        +(h.stats[key]||0)+' '+delta(key)+'</td>';
+    }
+    function d2(key){
+      if(!prev)return '';
+      var d=(h.stats[key]||0)-(prev.stats[key]||0);
+      if(d===0)return '<span style="color:#9CA3AF;font-size:10px;"> —</span>';
+      return '<span style="color:'+(d<0?'#059669':'#DC2626')+';font-size:10px;"> '+(d>0?'↑':'↓')+Math.abs(d)+'</span>';
+    }
+    function cellD(key){
+      return '<td style="padding:8px 14px;text-align:right;border-bottom:1px solid var(--g2);">'
+        +(h.stats[key]||0)+d2(key)+'</td>';
+    }
+    var isSel=(_histCmpA===h.semana||_histCmpB===h.semana);
+    return '<tr style="background:'+(isSel?'#F5F3FF':'')+';">'
+      +'<td style="padding:8px 14px;font-weight:700;color:var(--marino);border-bottom:1px solid var(--g2);">'+h.semana+'</td>'
+      +'<td style="padding:8px 14px;color:var(--g1);border-bottom:1px solid var(--g2);text-align:right;">'+h.fecha+'</td>'
+      +cellD('vt_total')+cellD('fact_total')
+      +cellD('vt_activos_sin')+cellD('sin_match_act')
+      +cellD('codigo_incorrecto_act')+cellD('fact_act_vt_baja')+cellD('diff_cli_act')
+      +'<td style="padding:8px 14px;text-align:center;border-bottom:1px solid var(--g2);">'
+      +'<button data-sem="'+h.semana+'" onclick="histEliminar(this.dataset.sem)" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:14px;" title="Eliminar">&#128465;</button>'
+      +'</td></tr>';
+  }).join('');
+}
+
+function histSelectCmp(sem,btn){
+  if(_histCmpA===sem){_histCmpA=null;}
+  else if(_histCmpB===sem){_histCmpB=null;}
+  else if(!_histCmpA){_histCmpA=sem;}
+  else if(!_histCmpB){_histCmpB=sem;}
+  else{_histCmpA=_histCmpB;_histCmpB=sem;}
+  // Update compare bar
+  var bar=document.getElementById('hist-compare-bar');
+  if(bar){
+    bar.style.display=(_histCmpA||_histCmpB)?'flex':'none';
+    var ea=document.getElementById('hist-cmp-a');var eb=document.getElementById('hist-cmp-b');
+    if(ea)ea.textContent=_histCmpA||'—';
+    if(eb)eb.textContent=_histCmpB||'—';
+  }
+  // Show delta if both selected
+  histShowDelta();
+  initHistorial();
+}
+
+function clearHistCompare(){_histCmpA=null;_histCmpB=null;initHistorial();}
+
+function histShowDelta(){
+  var delta=document.getElementById('hist-delta');
+  var dc=document.getElementById('hist-delta-content');
+  if(!delta||!dc)return;
+  if(!_histCmpA||!_histCmpB){delta.style.display='none';return;}
+  var arr=histLoad();
+  var a=arr.find(function(h){return h.semana===_histCmpA;});
+  var b=arr.find(function(h){return h.semana===_histCmpB;});
+  if(!a||!b){delta.style.display='none';return;}
+  delta.style.display='block';
+  var keys=[
+    {k:'vt_activos_sin',l:'SI en MB · NO en Fact.'},
+    {k:'sin_match_act',l:'Si en Fact · No en MB'},
+    {k:'codigo_incorrecto_act',l:'Exps. discrepantes'},
+    {k:'fact_act_vt_baja',l:'Activo Fact · De baja MB'},
+    {k:'diff_cli_act',l:'Cliente distinto'},
+    {k:'vt_baja_sin',l:'MB De Baja sin Fact.'},
+    {k:'match_act_ok',l:'Matches exactos'},
+  ];
+  dc.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">'
+    +keys.map(function(kv){
+      var va=a.stats[kv.k]||0, vb=b.stats[kv.k]||0, d=vb-va;
+      var better=(kv.k==='match_act_ok')?d>0:d<0;
+      var color=d===0?'#6B7280':better?'#059669':'#DC2626';
+      var arrow=d===0?'—':d>0?'↑':'↓';
+      return '<div style="background:#fff;border:1px solid var(--g2);border-radius:10px;padding:14px 16px;">'
+        +'<div style="font-size:11px;color:var(--g1);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">'+kv.l+'</div>'
+        +'<div style="display:flex;align-items:flex-end;gap:12px;">'
+        +'<div><div style="font-size:10px;color:var(--g1);">'+_histCmpA+'</div><div style="font-size:22px;font-weight:700;color:var(--marino);">'+va+'</div></div>'
+        +'<div style="font-size:18px;color:'+color+';font-weight:700;padding-bottom:2px;">'+arrow+'</div>'
+        +'<div><div style="font-size:10px;color:var(--g1);">'+_histCmpB+'</div><div style="font-size:22px;font-weight:700;color:var(--marino);">'+vb+'</div></div>'
+        +'<div style="margin-left:auto;text-align:right;">'
+        +'<div style="font-size:18px;font-weight:700;color:'+color+';">'+(d>0?'+':'')+d+'</div>'
+        +'<div style="font-size:10px;color:var(--g1);">'+(d===0?'sin cambio':better?'mejor':'peor')+'</div></div>'
+        +'</div></div>';
+    }).join('')
+    +'</div>';
+}
+
+function histEliminar(sem){
+  if(!confirm('¿Eliminar el registro de "'+sem+'"?'))return;
+  var arr=histLoad().filter(function(h){return h.semana!==sem;});
+  histSave(arr);
+  if(_histCmpA===sem)_histCmpA=null;
+  if(_histCmpB===sem)_histCmpB=null;
+  initHistorial();
+}
+
+// Auto-populate historial with current S20 data on load
+(function(){
+  histUpdateLanding();
+  // Pre-load current semana if not already saved
+  var arr=histLoad();
+  if(!arr.find(function(h){return h.semana==='Semana 20';})){
+    arr.push({semana:'Semana 20',fecha:'12-05-2026',ts:1747008000000,
+      stats:{vt_total:S.vt_total||0,fact_total:S.fact_total||0,vt_activos_sin:S.vt_activos_sin||0,sin_match_act:S.sin_match_act||0,codigo_incorrecto_act:S.codigo_incorrecto_act||0,fact_act_vt_baja:S.fact_act_vt_baja||0,diff_cli_act:S.diff_cli_act||0,vt_baja_sin:S.vt_baja_sin||0,match_act_ok:S.match_act_ok||0}});
+    histSave(arr);
+    histUpdateLanding();
+  }
+})();
+
 var _soloNuevos={};
 function toggleNuevos(tab,btn){
   _soloNuevos[tab]=!_soloNuevos[tab];
@@ -1012,12 +1220,11 @@ function runProcessing(){
   setProgress(5,'Leyendo MB...');
   var mbRows=genData.mb;var factRowsAll=genData.fact;
   // Filtrar solo Area de Práctica = Procesal con Título de expediente válido
-  var _EXP_RE=/^\d{4,6}-\d{4}-\d+-/;
+  var _EXP_RE=/^\d+/;
   var factRowsProcesal=factRowsAll.filter(function(r){return(r['Area de Práctica']||r['Area de Practica']||'')==='Procesal';});
   var factRows=factRowsProcesal.filter(function(r){return _EXP_RE.test(r['Título']||r['Titulo']||'');});
-  var factExcluidos=factRowsAll.filter(function(r){
-    var area=(r['Area de Práctica']||r['Area de Practica']||'');
-    return area!=='Procesal'||!_EXP_RE.test(r['Título']||r['Titulo']||'');
+  var factExcluidos=factRowsProcesal.filter(function(r){
+    return !_EXP_RE.test(r['Título']||r['Titulo']||'');
   });
   logGen('Fact. original: '+factRowsAll.length+' | Procesal válido: '+factRows.length+' | Excluidos: '+factExcluidos.length);
   logGen('MB: '+mbRows.length+' filas | Fact: '+factRows.length+' filas');
@@ -1031,7 +1238,7 @@ function runProcessing(){
 
   setProgress(30,'Procesando Facturacion...');
   var fP=factRows.map(function(r){
-    var tn=_ne(r['\u00cdtulo']||r['Titulo']||'');var bt=_cb(tn);var be2=_be(r['\u00cdtulo']||r['Titulo']||'');
+    var tn=_ne(r['T\u00edtulo']||r['Titulo']||r['T\u00cdtulo']||'');var bt=_cb(tn);var be2=_be(r['T\u00edtulo']||r['Titulo']||r['T\u00cdtulo']||'');
     var tipo;
     if(/^\d{4,6}-\d{4}/.test(tn)){tipo=_ec(tn)?'ec':(bt?'ep':'eo');}else if(be2){tipo='esp';}else{tipo='gen';}
     var bef=(tipo==='ec'||tipo==='ep')?bt:(tipo==='esp'?be2:null);
@@ -1058,10 +1265,10 @@ function runProcessing(){
     return 'Formato incompleto';
   }
   var mc=fP.filter(function(r){return r.tipo!=='gen';});
-  mc.forEach(function(r){r.res=mr(r);r.vtc=gvc(r.tn,r.bef);r.exc=gec2(r.tn,r.bef);if(r.res==='ab')r.rz=rfmt(r.tn,r.exc);if(r.res==='ad')r.rz=_em(r.raw['Cliente']||'',r.vtc)?'Nombre casi identico':'Clientes distintos';});
+  mc.forEach(function(r){r.res=mr(r);r.vtc=gvc(r.tn,r.bef);r.exc=gec2(r.tn,r.bef);if(r.res==='ab'){r.rz=rfmt(r.tn,r.exc);if(r.rz==='Codigo correcto con variacion menor'||r.rz.indexOf('ceros')>=0)r.res='ao_correct';}if(r.res==='ad')r.rz=_em(r.raw['Cliente']||'',r.vtc)?'Nombre casi identico':'Clientes distintos';});
 
   setProgress(70,'Categorizando...');
-  var ab=new Set(mc.filter(function(r){return ['ao','ad','ab','ea'].indexOf(r.res)>=0;}).map(function(r){return r.bef;}).filter(Boolean));
+  var ab=new Set(mc.filter(function(r){return ['ao','ao_correct','ad','ab','ea'].indexOf(r.res)>=0;}).map(function(r){return r.bef;}).filter(Boolean));
   var al=new Set(mc.map(function(r){return r.bef;}).filter(Boolean));
   var sm=mc.filter(function(r){return r.res==='sm';});
   var adf=mc.filter(function(r){return r.res==='ad';});
@@ -1083,7 +1290,7 @@ function runProcessing(){
   var da=dca.map(tf);var di=dci.map(tf);
 
   setProgress(85,'Generando HTML...');
-  var matchOk=mc.filter(function(r){return r.res==='ao';}).length;
+  var matchOk=mc.filter(function(r){return r.res==='ao'||r.res==='ao_correct';}).length;
   var fce=mc.filter(function(r){return r.tipo==='ec'||r.tipo==='ep';}).length;
   var sem=document.getElementById('gen-semana').value||'Semana';
   var fec=document.getElementById('gen-fecha').value||'';
@@ -1316,11 +1523,75 @@ function resetGen(){
         <div style="font-size:13px;color:var(--g1);margin-bottom:20px;" id="gen-summary"></div>
         <button onclick="downloadGenReport()" style="background:var(--marino);color:#fff;border:none;border-radius:9px;padding:10px 26px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-right:9px;">&#8659; Descargar HTML</button>
         <button onclick="resetGen()" style="background:#fff;color:var(--marino);border:1px solid var(--g2);border-radius:9px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Nuevo reporte</button>
+        <button onclick="guardarEnHistorial()" id="btn-guardar-hist" style="background:#7C3AED;color:#fff;border:none;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-left:8px;">&#128197; Guardar en historial</button>
+        <div id="hist-save-msg" style="display:none;margin-top:10px;font-size:12px;color:#059669;font-weight:600;">&#10003; Guardado en el historial</div>
       </div>
     </div>
   </div>
   <div class="footer">CID &middot; Vinatea &amp; Toyama &middot; Generador de Reporte MB &#8596; Facturacion</div>
 
+</div>
+
+<div class="app" id="app-historial">
+  <div class="header"><div class="header-inner">
+    <div class="logo"><div class="logo-dot"></div><div>
+      <div class="logo-text">Vinatea &amp; Toyama &middot; Historial</div>
+      <div class="logo-sub">Registro de semanas analizadas</div>
+    </div></div>
+    <div class="header-right">
+      <button class="switch-btn" onclick="switchView()">&#8644; Cambiar vista</button>
+    </div>
+  </div></div>
+
+  <div style="padding:24px 28px;">
+    <!-- Summary pills -->
+    <div id="hist-pills" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;"></div>
+
+    <!-- Compare bar -->
+    <div id="hist-compare-bar" style="display:none;background:#EDE9FE;border:1px solid #C4B5FD;border-radius:10px;padding:12px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <span style="font-size:13px;font-weight:700;color:#5B21B6;">&#9878; Comparando:</span>
+      <span id="hist-cmp-a" style="font-size:12px;background:#7C3AED;color:#fff;padding:3px 10px;border-radius:5px;font-weight:700;"></span>
+      <span style="font-size:12px;color:#6D28D9;">vs</span>
+      <span id="hist-cmp-b" style="font-size:12px;background:#5B21B6;color:#fff;padding:3px 10px;border-radius:5px;font-weight:700;"></span>
+      <button onclick="clearHistCompare()" style="margin-left:auto;background:none;border:none;color:#7C3AED;cursor:pointer;font-size:18px;">&#10005;</button>
+    </div>
+
+    <!-- Table area -->
+    <div id="hist-empty" style="text-align:center;padding:60px 20px;color:var(--g1);">
+      <div style="font-size:48px;margin-bottom:16px;">&#128197;</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Sin historial todavía</div>
+      <div style="font-size:13px;">Procesa los Excel en el Generador y guarda el reporte para verlo aquí.</div>
+    </div>
+
+    <div id="hist-content" style="display:none;">
+      <!-- Stats comparison table -->
+      <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--g2);">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:var(--marino);color:#fff;">
+              <th style="padding:10px 14px;text-align:left;font-weight:700;">Semana</th>
+              <th style="padding:10px 14px;text-align:right;">Fecha</th>
+              <th style="padding:10px 14px;text-align:right;">MB</th>
+              <th style="padding:10px 14px;text-align:right;">Fact.</th>
+              <th style="padding:10px 14px;text-align:right;">SI MB·NO Fact</th>
+              <th style="padding:10px 14px;text-align:right;">Si Fact·No MB</th>
+              <th style="padding:10px 14px;text-align:right;">Discrepantes</th>
+              <th style="padding:10px 14px;text-align:right;">Baja MB</th>
+              <th style="padding:10px 14px;text-align:right;">Cli. distinto</th>
+              <th style="padding:10px 14px;text-align:center;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="hist-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Delta chart -->
+      <div id="hist-delta" style="margin-top:22px;display:none;">
+        <div style="font-size:13px;font-weight:700;color:var(--marino);margin-bottom:12px;">&#128200; Evolución entre semanas seleccionadas</div>
+        <div id="hist-delta-content"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Modal de contraseña -->
