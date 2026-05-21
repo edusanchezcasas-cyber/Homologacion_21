@@ -1126,25 +1126,59 @@ function runProcessing(){
     rd.stats.tiene_comparacion=true;
   }
 
-  var nb64=btoa(unescape(encodeURIComponent(JSON.stringify(rd))));
-  logGen('Datos procesados. Generando HTML...');
+  // ── Live update: replace global DATA and refresh all views ──
+  logGen('Aplicando datos al panel...');
 
-  var tmpl=document.documentElement.outerHTML;
-  tmpl=tmpl.replace(/var _B64='[A-Za-z0-9+\/=]+'/,"var _B64='"+nb64+"'");
-  tmpl=tmpl.replace(/Semana 20/g,sem);
-  tmpl=tmpl.replace(/12-05-2026/g,fec);
-  tmpl=tmpl.replace(/12 de mayo 2026/g,fec);
+  // 1. Update global DATA object in-place
+  Object.assign(DATA, rd);
+  Object.assign(S, rd.stats);
+  Object.assign(CD, rd.chart_data||{});
 
-  if(!document.getElementById('opt-gerencia').checked){tmpl=tmpl.replace("onclick=\"enterApp('gerencia')\"","onclick=\"enterApp('gerencia')\" style=\"display:none\"");}
-  if(!document.getElementById('opt-general').checked){tmpl=tmpl.replace("onclick=\"enterApp('general')\"","onclick=\"enterApp('general')\" style=\"display:none\"");}
-  if(!document.getElementById('opt-cerroverde').checked){tmpl=tmpl.replace(/onclick="showPage\('fp-cv',this\)"[^>]+>[^<]+<\/button>/,'');}
+  // 2. Update date/semana badges
+  var semEl=document.querySelectorAll('.logo-sub, .hbadge, .date-badge, .dbadge');
+  semEl.forEach(function(el){
+    if(el.textContent.indexOf('Semana')>=0||el.textContent.match(/\d{2}-\d{2}-\d{4}/)){
+      if(el.tagName==='BUTTON'||el.className.indexOf('hbadge')>=0) el.textContent=fec;
+    }
+  });
+  // Update all visible semana/fecha text
+  document.querySelectorAll('.logo-sub').forEach(function(el){
+    el.textContent=el.textContent.replace(/Semana \d+/,sem);
+  });
+  document.querySelectorAll('.hbadge').forEach(function(el){
+    el.textContent=fec;
+  });
 
-  generatedHtml=tmpl;
+  // 3. Update the gen-semana default for future runs
+  document.getElementById('gen-semana').value=sem;
+  document.getElementById('gen-fecha').value=fec;
+
+  // 4. Rebuild all active views
+  try { buildG(); } catch(e){}
+  try { buildF(); setTimeout(initCV,200); } catch(e){}
+  try { buildGeneral(); } catch(e){}
+
+  // 5. Show success in generador
   setProgress(100,'Listo');
   document.getElementById('gen-progress').style.display='none';
   document.getElementById('gen-done').style.display='block';
   var pct=Math.round(matchOk/(fce||1)*100);
-  document.getElementById('gen-summary').textContent=mbRows.length.toLocaleString()+' procesos MB \u00b7 '+factRows.length.toLocaleString()+' registros Facturacion \u00b7 '+matchOk.toLocaleString()+' matches exactos ('+pct+'%)';
+  document.getElementById('gen-summary').textContent=
+    mbRows.length.toLocaleString()+' procesos MB · '
+    +factRows.length.toLocaleString()+' registros Facturación · '
+    +matchOk.toLocaleString()+' matches exactos ('+pct+'%) — '
+    +'Panel actualizado en vivo. Descarga para guardar la versión actualizada.';
+
+  // 6. Also generate downloadable version so they can save it
+  nb64=btoa(unescape(encodeURIComponent(JSON.stringify(rd))));
+  var tmpl=document.documentElement.outerHTML;
+  tmpl=tmpl.replace(/var _B64='[A-Za-z0-9+\/=]+'/,"var _B64='"+nb64+"'");
+  tmpl=tmpl.replace(/Semana \d+/g,sem);
+  tmpl=tmpl.replace(/\d{2}-\d{2}-\d{4}/g,fec);
+  if(!document.getElementById('opt-gerencia').checked){tmpl=tmpl.replace("onclick=\"enterApp('gerencia')\"","onclick=\"enterApp('gerencia')\" style=\"display:none\"");}
+  if(!document.getElementById('opt-general').checked){tmpl=tmpl.replace("onclick=\"enterApp('general')\"","onclick=\"enterApp('general')\" style=\"display:none\"");}
+  if(!document.getElementById('opt-cerroverde').checked){tmpl=tmpl.replace(/onclick="showPage\('fp-cv',this\)"[^>]+>[^<]+<\/button>/,'');}
+  generatedHtml=tmpl;
 }
 
 function downloadGenReport(){
@@ -1278,7 +1312,7 @@ function resetGen(){
     <div id="gen-done" style="display:none;">
       <div style="background:#fff;border-radius:12px;padding:30px;border:1px solid var(--g2);text-align:center;">
         <div style="font-size:36px;margin-bottom:13px;">&#9989;</div>
-        <div style="font-size:16px;font-weight:700;color:var(--marino);margin-bottom:7px;">Reporte generado</div>
+        <div style="font-size:16px;font-weight:700;color:var(--marino);margin-bottom:7px;">✅ Panel actualizado en vivo</div>
         <div style="font-size:13px;color:var(--g1);margin-bottom:20px;" id="gen-summary"></div>
         <button onclick="downloadGenReport()" style="background:var(--marino);color:#fff;border:none;border-radius:9px;padding:10px 26px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-right:9px;">&#8659; Descargar HTML</button>
         <button onclick="resetGen()" style="background:#fff;color:var(--marino);border:1px solid var(--g2);border-radius:9px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Nuevo reporte</button>
