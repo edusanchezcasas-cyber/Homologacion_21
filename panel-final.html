@@ -734,7 +734,7 @@ function buildF(){
   setText('n5',S.diff_cli_act);setText('n5i','+'+S.diff_cli_inact);
   setText('n6',S.vt_baja_sin);
   setText('n7',S.fact_excluidos_n||0);
-  rdr('excluidos',DATA.fact_excluidos||[]);
+  try{rdr('excluidos',DATA.fact_excluidos||[]);}catch(e){console.warn('excluidos rdr:',e);}
   setText('n8',(S.disc_15na_nuevas||0)+'/'+(S.disc_15na_resueltas||0));
   // Init 15na tab counts
   var d15=DATA.discrepancias_15na||{};
@@ -1618,6 +1618,14 @@ var TC={
       function(r){return '<td class="cl" style="color:#B45309;">'+(r.cf||r.c||'').substring(0,30)+'</td>';},
       function(r){return '<td class="cl" style="color:#0891B2;">'+(r.cr||'').substring(0,30)+'</td>';},
       function(r){return '<td style="color:#6B7280;">'+(r.s||'')+'</td>';}
+    ]},
+  excluidos:{tbId:'tb7',cntId:'c7',srId:'s7',fname:'Excluidos_Procesal',flt:null,
+    src:function(){return DATA.fact_excluidos||[];},
+    cols:[
+      function(r){return '<td class="mo">'+(r.cd||'')+'</td>';},
+      function(r){return '<td class="mo" style="color:#6B7280;">'+(r.t||'').substring(0,44)+'</td>';},
+      function(r){return '<td class="dc">'+(r.c||'').substring(0,28)+'</td>';},
+      actBadge
     ]}
 }
 
@@ -1631,11 +1639,14 @@ function rdr(name,data){
   var hasCmp=DATA.stats&&DATA.stats.tiene_comparacion;
   var discrepCats=['mbsin','cod','sinmb','baja','diff','mbbaja'];
   var showCmp=hasCmp&&discrepCats.indexOf(name)>=0;
-  tb.innerHTML=data.map(function(r){
-    var cmpTd=showCmp?'<td>'+( r.n?'<span class="nuevo-badge">NUEVO</span>':'<span class="persiste-badge">PERSISTE</span>')+'</td>':'';
-    return '<tr>'+cfg.cols.map(function(fn){return fn(r);}).join('')+cmpTd+'</tr>';
-  }).join('');
-  if(cnt)cnt.textContent=data.length+' registros'+(hasCmp&&showCmp?' ('+data.filter(function(r){return r.n;}).length+' nuevos)':'');
+  try{
+    tb.innerHTML=data.map(function(r){
+      var cmpTd=showCmp?'<td>'+(r.n?'<span class="nuevo-badge">NUEVO</span>':'<span class="persiste-badge">PERSISTE</span>')+'</td>':'';
+      var cells=cfg.cols.map(function(fn,ci){try{return fn(r);}catch(e){return '<td style="background:#FEE2E2;color:#991B1B;font-size:10px;">ERR col'+ci+': '+e.message+'</td>';}});
+      return '<tr>'+cells.join('')+cmpTd+'</tr>';
+    }).join('');
+    if(cnt)cnt.textContent=data.length+' registros'+(hasCmp&&showCmp?' ('+data.filter(function(r){return r.n;}).length+' nuevos)':'');
+  }catch(e){tb.innerHTML='<tr><td colspan="99" style="background:#FEE2E2;color:#991B1B;padding:10px;font-family:monospace;font-size:11px;">ERROR en tabla '+name+': '+e.message+'</td></tr>';if(cnt)cnt.textContent='Error';}
 }
 
 function ft(name){
