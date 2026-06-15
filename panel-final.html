@@ -161,12 +161,12 @@ td.vc{font-size:11px;color:#047857;max-width:185px;overflow:hidden;text-overflow
   .yr-bar{display:flex;align-items:center;margin-bottom:10px;gap:8px;}
   .yr-drop{position:relative;display:inline-block;}
   .yr-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #CBD5E1;background:#fff;color:#374151;}
-  .yr-btn:hover,.yr-drop:hover .yr-btn{border-color:#1F3864;color:#1F3864;background:#F1F5F9;}
+  .yr-btn:hover{border-color:#1F3864;color:#1F3864;background:#F1F5F9;}
   .yr-btn.has-filter{background:#1F3864;color:#fff;border-color:#1F3864;}
   .yr-arrow{font-size:9px;opacity:.6;transition:transform .15s;}
-  .yr-drop:hover .yr-arrow{transform:rotate(180deg);}
-  .yr-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #E2E8F0;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:999;min-width:110px;overflow:hidden;}
-  .yr-drop:hover .yr-menu{display:block;}
+  .yr-drop.open .yr-arrow{transform:rotate(180deg);}
+  .yr-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #E2E8F0;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:9999;min-width:110px;overflow:hidden;}
+  .yr-drop.open .yr-menu{display:block;}
   .yr-opt{padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;color:#374151;}
   .yr-opt:hover{background:#F1F5F9;color:#1F3864;}
   .yr-opt.active{background:#EFF6FF;color:#1F3864;font-weight:700;}
@@ -1433,7 +1433,8 @@ var GEN_COLS={
 };
 var _yrFilter={};
 function _getExpYear(r,name){var exp=(name==='mbsin'?(r.e||''):(r.t||''));var p=exp.split('-');return(p.length>=2&&/^\d{4}$/.test(p[1]))?p[1]:'';}
-function yrSelect(el){var y=el.getAttribute('data-yr'),n=el.getAttribute('data-name'),t=el.getAttribute('data-tb'),c=el.getAttribute('data-cnt');genRdr(n,genRows[n],t,c,y);}
+function toggleYrDrop(el){var d=el.closest('.yr-drop');document.querySelectorAll('.yr-drop.open').forEach(function(x){if(x!==d)x.classList.remove('open');});d.classList.toggle('open');}
+function yrSelect(el){var y=el.getAttribute('data-yr'),n=el.getAttribute('data-name'),t=el.getAttribute('data-tb'),c=el.getAttribute('data-cnt');var d=el.closest('.yr-drop');if(d)d.classList.remove('open');genRdr(n,genRows[n],t,c,y);}
 function genRdr(name,data,tbId,cntId,selectedYear){
   genRows[name]=data;if(selectedYear!==undefined)_yrFilter[name]=selectedYear;var yr=_yrFilter[name]||null;
   var tb=document.getElementById(tbId);var cnt=document.getElementById(cntId);if(!tb)return;
@@ -1451,7 +1452,7 @@ function genRdr(name,data,tbId,cntId,selectedYear){
         });
         var btnCls='yr-btn'+(hf?' has-filter':'');
         var lbl=hf?('&#128197; '+yr):'&#128197; A\u00f1o';
-        fb.innerHTML='<div class="yr-drop"><div class="'+btnCls+'">'+lbl+' <span class="yr-arrow">&#9660;</span></div><div class="yr-menu">'+opts+'</div></div>';
+        fb.innerHTML='<div class="yr-drop"><div class="'+btnCls+'" onclick="toggleYrDrop(this)">'+lbl+' <span class="yr-arrow">&#9660;</span></div><div class="yr-menu">'+opts+'</div></div>';
         fb.style.display='flex';
       } else { fb.innerHTML=''; }
     }
@@ -1462,7 +1463,7 @@ function genRdr(name,data,tbId,cntId,selectedYear){
     var _gc={'mbsin':'2fr 0.7fr 2fr 2fr 1.2fr','cod':'0.8fr 0.6fr 1.2fr 1.2fr 1.5fr 1.5fr 0.5fr 1fr','diff':'0.8fr 0.6fr 1.2fr 1.5fr 1.5fr 1.5fr 0.5fr 1fr'};
     var _gc2=_gc[name]||'1fr 1fr 1fr';
     var _rs='display:grid!important;grid-template-columns:'+_gc2+';border-bottom:1px solid #E2E8F0;font-size:12px;color:#1A202C;width:100%;position:relative;';
-    var _cs='padding:8px 10px;min-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1A202C;';
+    var _cs='padding:8px 10px;min-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:normal;word-break:break-word;color:#1A202C;';
     tb.style.cssText='display:block!important;width:100%!important;min-height:20px!important;';
     tb.innerHTML=filtered.map(function(r){
       return '<div style="'+_rs+'">'+GEN_COLS[name].cols.map(function(fn){
@@ -1801,6 +1802,7 @@ function resetGen(){
 }
 var _ALIAS_MAP=(function(){var m={};_loadAliases().forEach(function(p,i){m[_ns(p[0])]=i;m[_ns(p[1])]=i;});return m;}());
 function _rebuildAliasMap(){var m={};_loadAliases().forEach(function(p,i){m[_ns(p[0])]=i;m[_ns(p[1])]=i;});Object.keys(_ALIAS_MAP).forEach(function(k){delete _ALIAS_MAP[k];});Object.assign(_ALIAS_MAP,m);}
+document.addEventListener('click',function(e){if(!e.target.closest('.yr-drop')){document.querySelectorAll('.yr-drop.open').forEach(function(d){d.classList.remove('open');});}});
 
 </script>
 
