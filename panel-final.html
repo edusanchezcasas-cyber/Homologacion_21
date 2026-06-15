@@ -713,7 +713,7 @@ var rows={};
 
 
 function enterApp(v){
-  if(v==='gerencia'||v==='facturacion'){pwOpen(v);}
+  if(v==='gerencia'){pwOpen(v);}
   else{_doEnterApp(v);}
 }
 function _doEnterApp(v){
@@ -1602,7 +1602,7 @@ function runProcessing(){
   logGen('MB: '+mbRows.length+' filas | Fact: '+factRows.length+' filas');
 
   function _isCautelar(exp){var p=String(exp).trim().split('-');return p.length>=3&&p[2]!=='0';}
-var mbP=mbRows.filter(function(r){return !_isCautelar(r['Nro. Expediente']||'');}).map(function(r){var en=_ne(r.e||'');return {raw:r,en:en,bv:_cb(en),cn:_ns(r['Cliente Facturable']||''),act:(r['Estado carpeta']||'')==='Activo'};});
+var mbP=mbRows.filter(function(r){return !_isCautelar(r['Nro. Expediente']||'');}).map(function(r){var en=_ne(r['Nro. Expediente']||'');return {raw:r,en:en,bv:_cb(en),cn:_ns(r['Cliente Facturable']||''),act:(r['Estado carpeta']||'')==='Activo'};});
   setProgress(15,'Construyendo indices...');
 
   var aec={},abc={},aes={},abs={},abe={},bec={},bbc={},bes={},bbs={},bbe={};
