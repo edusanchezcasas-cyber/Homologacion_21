@@ -1358,22 +1358,24 @@ var genSubState={cod:'act',diff:'act'};
 var genRows={};
 
 function buildGeneral(){
-  // VISIBILITY TEST: write directly to multiple locations
+  // FULL DIAGNOSTIC
+  var ag=document.getElementById('app-general');
   var t1=document.getElementById('gtb1');
+  var cs0=ag?window.getComputedStyle(ag):{};
+  console.log('app-general: display='+cs0.display+' visibility='+cs0.visibility+' opacity='+cs0.opacity+' height='+cs0.height+' overflow='+cs0.overflow);
+  if(ag){
+    var r=ag.getBoundingClientRect();
+    console.log('app-general rect: top='+r.top+' left='+r.left+' w='+r.width+' h='+r.height);
+  }
   if(t1){
-    t1.style.cssText='min-height:100px;background:yellow;display:block;';
-    t1.innerHTML='<p style="color:red;font-size:18px;font-weight:bold;padding:20px;margin:0;">TEST: '+DATA.vt_activos_sin.length+' filas disponibles</p>';
-  }
-  // Also check .tw parent
-  var tw=t1&&t1.closest('.tw');
-  if(tw){
-    var cs=window.getComputedStyle(tw);
-    console.log('tw height='+cs.height+' overflow='+cs.overflow+' display='+cs.display);
-  }
-  var to=t1&&t1.closest('.to');
-  if(to){
-    var cs2=window.getComputedStyle(to);
-    console.log('to height='+cs2.height+' overflow='+cs2.overflow+' maxHeight='+cs2.maxHeight);
+    var r2=t1.getBoundingClientRect();
+    var cs3=window.getComputedStyle(t1);
+    console.log('gtb1: display='+cs3.display+' height='+cs3.height+' rect.h='+r2.height+' rect.top='+r2.top);
+    // Force visible test
+    t1.style.cssText='background:red!important;min-height:200px!important;display:block!important;color:white!important;font-size:20px!important;padding:20px!important;position:relative!important;z-index:9999!important;';
+    t1.innerHTML='<b>TEST '+DATA.vt_activos_sin.length+' FILAS</b>';
+    var r3=t1.getBoundingClientRect();
+    console.log('gtb1 after force: rect.h='+r3.height+' rect.top='+r3.top);
   }
 
   setText('gn1',S.vt_activos_sin);
