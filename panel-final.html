@@ -439,7 +439,6 @@ td.vc{font-size:11px;color:#047857;max-width:185px;overflow:hidden;text-overflow
     <div class="logo"><div class="logo-dot"></div><div><div class="logo-text">Vinatea &amp; Toyama &#183; Vista General</div><div class="logo-sub">Para Facturacion y Paralegal &mdash; Sem. 19</div></div></div>
     <div class="header-right">
       <div class="hbadge">08-06-2026</div>
-    <button class="switch-btn" style="background:#1F3864;margin-right:6px;" onclick="openDictModal()">&#128218; Diccionario</button>
     <button class="switch-btn" onclick="switchView()">&#8644; Cambiar vista</button>
     </div>
   </div></div>
@@ -705,46 +704,6 @@ var MB_URL='https://vinatea.mybig.com.ar/trabajos/overview/';
 var TB_URL='https://vinateatoyama.thetimebilling.com/time_tracking/app/interfaces/agregar_asunto.php?id_asunto=';
 var S=DATA.stats;
 var CD=DATA.chart_data;
-var _BASE_ALIASES=[['INTEGRATEL PERU S.A.A.','TELEFONICA DEL PERU S.A.A.'],['SMURFIT WESTROCK PERU S.A.C.','SMURFIT KAPPA PERU S.A.C.'],['ENGIE PERU S.A.','ENGIE ENERGIA PERU S.A.'],['NEXA RESOURCES PERU S.A.A.','NEXA RESOURCES CAJAMAR'],['P&G INDUSTRIAL PERU S.R.L.','PROCTER & GAMBLE PERU S.R.'],['QS CONSUMO SAC','QS CONSUMO S.A.C.'],['PACIFICO ASISTE S.A.C.','PACIFICO S.A. ENT. PRESTAD'],['CNPC PERU S.A.','CNPC DEL PERU SA'],['INSTITUTO DEL BIEN COMUN','INSTITUTO BIEN COMUN - IBC'],['GRUPO DE CONTRATISTAS INTE','GRUPO DE CONTRATISTAS I.']];
-var _ALIAS_LS_KEY='vt_alias_dict_v1';
-function _loadAliases(){var base=_BASE_ALIASES.slice();try{var saved=JSON.parse(localStorage.getItem(_ALIAS_LS_KEY)||'[]');saved.forEach(function(p){base.push(p);});}catch(e){}return base;}
-function _saveUserAlias(a,b){try{var saved=JSON.parse(localStorage.getItem(_ALIAS_LS_KEY)||'[]');saved.push([a.trim(),b.trim()]);localStorage.setItem(_ALIAS_LS_KEY,JSON.stringify(saved));_rebuildAliasMap();}catch(e){}}
-function _deleteUserAlias(idx){try{var saved=JSON.parse(localStorage.getItem(_ALIAS_LS_KEY)||'[]');saved.splice(idx,1);localStorage.setItem(_ALIAS_LS_KEY,JSON.stringify(saved));_rebuildAliasMap();}catch(e){}}
-
-/* Filtra filas de diff donde el alias ya resuelve la discrepancia */
-function _diffAliasFiltered(data){
-  return data.filter(function(r){
-    var cf=r.c||r.cf_fact||'';
-    var vf=r.vcf||'';
-    var vr=r.vcr||'';
-    return !(_sameClient(cf,vf)||_sameClient(cf,vr));
-  });
-}
-/* Re-renderiza tabs diff y actualiza contadores y nav badges */
-function _applyAliasToGeneral(){
-  if(!DATA)return;
-  var act=_diffAliasFiltered(DATA.diff_cli_act||[]);
-  var inact=_diffAliasFiltered(DATA.diff_cli_inact||[]);
-  /* actualizar contadores en el header de la sección */
-  setText('gn5',act.length);
-  setText('gn5i','+'+inact.length);
-  setText('gs5a','('+act.length+')');
-  setText('gs5i','('+inact.length+')');
-  /* re-renderizar la sub-tab activa */
-  var mode=genSubState.diff||'act';
-  var data=mode==='act'?act:inact;
-  genRdr('diff',data,'gtb5','gc5');
-  /* actualizar badge del nav button */
-  var nb5=document.querySelector('#app-general .nb:nth-child(3) .b');
-  if(nb5)nb5.textContent=act.length;
-}
-function _sameClient(a,b){var an=_ns(a),bn=_ns(b);if(an===bn)return true;if(_em(a,b))return true;if(an in _ALIAS_MAP&&bn in _ALIAS_MAP)return _ALIAS_MAP[an]===_ALIAS_MAP[bn];return false;}
-function buildDiccionario(){var base=_BASE_ALIASES||[];var user=[];try{user=JSON.parse(localStorage.getItem(_ALIAS_LS_KEY)||'[]');}catch(e){}var tbl=document.getElementById('dict-tbody');if(!tbl){setTimeout(buildDiccionario,200);return;}var td='padding:11px 16px;border-bottom:1px solid #F1F5F9;color:#1F3864;font-size:13px;';var rows='';base.forEach(function(p){rows+='<tr style="background:#F0FDF4;"><td style="'+td+'">'+p[0]+'</td><td style="'+td+'">'+p[1]+'</td><td style="'+td+';text-align:center;color:#9CA3AF;">&#128274;</td></tr>';});user.forEach(function(p,i){rows+='<tr><td style="'+td+'">'+p[0]+'</td><td style="'+td+'">'+p[1]+'</td><td style="padding:8px 12px;"><button onclick="delAlias('+i+')" style="background:#FEE2E2;color:#DC2626;border:none;border-radius:4px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;">✕</button></td></tr>';});if(!rows)rows='<tr><td colspan="3" style="padding:20px;text-align:center;color:#9CA3AF;">Sin aliases.</td></tr>';tbl.innerHTML=rows;var cnt=document.getElementById('dict-count');if(cnt)cnt.textContent=(base.length+user.length)+' pares';}
-function addAlias(){var a=document.getElementById('dict-a'),b=document.getElementById('dict-b'),msg=document.getElementById('dict-msg');if(!a||!b||!a.value.trim()||!b.value.trim()){if(msg){msg.style.color='#F59E0B';msg.textContent='⚠ Completa ambos campos';}return;}try{var saved=JSON.parse(localStorage.getItem(_ALIAS_LS_KEY)||'[]');saved.push([a.value.trim(),b.value.trim()]);localStorage.setItem(_ALIAS_LS_KEY,JSON.stringify(saved));_rebuildAliasMap();a.value='';b.value='';buildDiccionario();_applyAliasToGeneral();if(msg){msg.style.color='#10B981';msg.textContent='✓ Alias aplicado — Vista General actualizada';setTimeout(function(){msg.textContent='';},3500);}}catch(e){if(msg){msg.style.color='#DC2626';msg.textContent='Error: '+e.message;}}}
-function delAlias(idx){_deleteUserAlias(idx);buildDiccionario();_applyAliasToGeneral();}
-function openDictModal(){var m=document.getElementById('dict-modal');if(m){m.style.display='block';buildDiccionario();}}
-function closeDictModal(){var m=document.getElementById('dict-modal');if(m)m.style.display='none';}
-window.addAlias=addAlias;window.delAlias=delAlias;window.openDictModal=openDictModal;window.closeDictModal=closeDictModal;
 
 var DONUT_PCT=34;
 
@@ -1396,8 +1355,8 @@ var genSubState={cod:'act',diff:'act'};
 var genRows={};
 
 function buildGeneral(){
-  var diffAct=_diffAliasFiltered(DATA.diff_cli_act||[]);
-  var diffInact=_diffAliasFiltered(DATA.diff_cli_inact||[]);
+  var diffAct=DATA.diff_cli_act||[];
+  var diffInact=DATA.diff_cli_inact||[];
   setText('gn1',S.vt_activos_sin);
   setText('gn3',S.codigo_incorrecto_act);
   setText('gn3i','+'+S.codigo_incorrecto_inact);
@@ -1425,7 +1384,7 @@ function genSubSwitch(tab,mode,btn){
   var map={cod:'gt3',diff:'gt5'};
   var te=document.getElementById(map[tab]);
   if(te)te.textContent=te.textContent.replace('Activos',lbl).replace('Inactivos',lbl);
-  var data=tab==='cod'?(mode==='act'?DATA.codigo_incorrecto_act:DATA.codigo_incorrecto_inact):(mode==='act'?_diffAliasFiltered(DATA.diff_cli_act):_diffAliasFiltered(DATA.diff_cli_inact));
+  var data=tab==='cod'?(mode==='act'?DATA.codigo_incorrecto_act:DATA.codigo_incorrecto_inact):(mode==='act'?DATA.diff_cli_act:DATA.diff_cli_inact);
   var tbMap={cod:'gtb3',diff:'gtb5'};
   var cntMap={cod:'gc3',diff:'gc5'};
   genRdr(tab,data,tbMap[tab],cntMap[tab]);
@@ -1520,7 +1479,7 @@ function genRdr(name,data,tbId,cntId,selectedYear){
 }
 function ftGen(name,cntId,tbId,srId){
   var q=(document.getElementById(srId)||{}).value;q=(q||'').toLowerCase();
-  var allMap={mbsin:DATA.vt_activos_sin,cod:genSubState.cod==='act'?DATA.codigo_incorrecto_act:DATA.codigo_incorrecto_inact,diff:genSubState.diff==='act'?_diffAliasFiltered(DATA.diff_cli_act):_diffAliasFiltered(DATA.diff_cli_inact)};
+  var allMap={mbsin:DATA.vt_activos_sin,cod:genSubState.cod==='act'?DATA.codigo_incorrecto_act:DATA.codigo_incorrecto_inact,diff:genSubState.diff==='act'?DATA.diff_cli_act:DATA.diff_cli_inact};
   var all=allMap[name]||[];
   var res=q?all.filter(function(r){return Object.values(r).some(function(v){return String(v).toLowerCase().indexOf(q)>=0;});}):all;
   var cnt=document.getElementById(cntId);if(cnt)cnt.textContent=res.length+' registros';
@@ -1828,14 +1787,11 @@ function resetGen(){
   });
   checkGenReady();
 }
-var _ALIAS_MAP=(function(){var m={};_loadAliases().forEach(function(p,i){m[_ns(p[0])]=i;m[_ns(p[1])]=i;});return m;}());
-function _rebuildAliasMap(){var m={};_loadAliases().forEach(function(p,i){m[_ns(p[0])]=i;m[_ns(p[1])]=i;});Object.keys(_ALIAS_MAP).forEach(function(k){delete _ALIAS_MAP[k];});Object.assign(_ALIAS_MAP,m);}
 document.addEventListener('click',function(e){if(!e.target.closest('.yr-drop')){document.querySelectorAll('.yr-drop.open').forEach(function(d){d.classList.remove('open');});}});
 
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <div id="dict-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:5000;overflow-y:auto;"><div style="background:#fff;max-width:860px;margin:40px auto;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);"><div style="background:#1F3864;color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:12px;"><div style="width:4px;height:32px;background:#E6223D;border-radius:2px;"></div><div><div style="font-size:16px;font-weight:700;">&#128218; Diccionario de Clientes</div><div style="font-size:11px;opacity:.7;">Aliases MB &#8596; Facturación</div></div></div><button onclick="closeDictModal()" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:13px;font-weight:700;cursor:pointer;">&#10005; Cerrar</button></div><div style="padding:22px 26px;"><div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:14px;margin-bottom:18px;font-size:13px;color:#1E40AF;">Define pares de clientes que deben tratarse como el mismo.</div><div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:16px;margin-bottom:16px;"><div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:10px;">+ Agregar nuevo alias</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><input id="dict-a" placeholder="Cliente A" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #CBD5E1;border-radius:6px;font-size:13px;"/><span style="font-weight:700;color:#94A3B8;font-size:18px;">=</span><input id="dict-b" placeholder="Cliente B equivalente" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #CBD5E1;border-radius:6px;font-size:13px;"/><button onclick="addAlias()" style="background:#1F3864;color:#fff;border:none;border-radius:7px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;">+ Agregar</button></div><div id="dict-msg" style="font-size:12px;font-weight:700;margin-top:8px;min-height:18px;"></div></div><div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;"><span style="font-size:14px;font-weight:700;color:#1F3864;">Aliases registrados</span><span id="dict-count" style="font-size:12px;color:#6B7280;background:#E2E8F0;padding:2px 10px;border-radius:10px;"></span></div><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#F1F5F9;"><th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:#6B7280;border-bottom:1px solid #E2E8F0;">CLIENTE A</th><th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:#6B7280;border-bottom:1px solid #E2E8F0;">CLIENTE B</th><th style="width:50px;border-bottom:1px solid #E2E8F0;"></th></tr></thead><tbody id="dict-tbody"></tbody></table></div><p style="font-size:11px;color:#94A3B8;margin-top:10px;text-align:center;">&#128274; Predefinidos no eliminables</p></div></div></div>
 </body>
 </html>
