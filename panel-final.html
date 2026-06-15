@@ -23,7 +23,7 @@ body{font-family:'DM Sans',Arial,sans-serif;background:var(--bg);color:var(--tex
 .lcard-title{color:#fff;font-size:18px;font-weight:700;margin-bottom:8px;}
 .lcard-desc{color:rgba(255,255,255,.5);font-size:13px;line-height:1.6;}
 .lcard-btn{display:inline-block;margin-top:18px;background:var(--rojo);color:#fff;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;}
-.app{display:none;}.app.visible{display:block;}
+.app{display:none;}.app.visible{display:block;width:100%;min-height:100vh;box-sizing:border-box;}
 .header{background:var(--marino);position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.3);}
 .header-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 28px;max-width:1500px;margin:0 auto;}
 .logo{display:flex;align-items:center;gap:10px;}.logo-dot{width:7px;height:26px;background:var(--rojo);border-radius:4px;}
@@ -95,13 +95,13 @@ body{font-family:'DM Sans',Arial,sans-serif;background:var(--bg);color:var(--tex
 .st .sn{font-family:'DM Mono',monospace;font-size:10px;opacity:.8;}
 .dl-btn{margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:7px;border:1px solid var(--g2);background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--marino);white-space:nowrap;}
 .dl-btn:hover{background:var(--marino);color:#fff;border-color:var(--marino);}
-.tw{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;}
+.tw{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:visible;width:100%;}
 .tb{padding:10px 15px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--g2);background:#FAFBFC;flex-wrap:wrap;}
 .tt{font-size:12.5px;font-weight:700;color:var(--marino);}
 .tc{font-family:'DM Mono',monospace;font-size:11px;background:var(--bg);padding:2px 8px;border-radius:20px;color:var(--t2);}
 .sri{margin-left:auto;border:1px solid var(--g2);border-radius:7px;padding:6px 10px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;width:175px;}
 .sri:focus{border-color:var(--rojo);}
-.to{overflow-x:auto;max-height:420px;overflow-y:auto;}
+.to{overflow-x:auto;max-height:420px;overflow-y:auto;width:100%;}
 table{width:100%;border-collapse:collapse;font-size:11.5px;}
 th{background:var(--marino);color:#fff;padding:8px 12px;text-align:left;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;z-index:10;white-space:nowrap;}
 td{padding:7px 12px;border-bottom:1px solid var(--g2);color:var(--t2);vertical-align:middle;}
@@ -171,17 +171,14 @@ td.vc{font-size:11px;color:#047857;max-width:185px;overflow:hidden;text-overflow
   .yr-opt:hover{background:#F1F5F9;color:#1F3864;}
   .yr-opt.active{background:#EFF6FF;color:#1F3864;font-weight:700;}
   .yr-opt.active::before{content:'\u2713 ';}
+
+  .app.visible{display:block!important;width:100vw;min-height:100vh;}
 </style>
 </head>
 <body>
-<script>
-window.onerror=function(msg,src,line,col,err){
-  document.body.innerHTML='<div style="font-family:monospace;padding:30px;background:#FEE2E2;color:#991B1B;font-size:14px;margin:20px;border-radius:8px;"><b>JS ERROR:</b><br>'+msg+'<br>Line: '+line+'<br>File: '+src+'<br><br>'+(err&&err.stack?err.stack.replace(/\n/g,'<br>'):'')+'</div>';
-  return true;
-};
-</script>
 
-<div class="landing" id="landing" style="display:flex!important;">
+
+<div class="landing" id="landing">
   <div class="landing-logo">
     <div class="landing-dot"></div>
     <div><div class="landing-title">Vinatea &amp; Toyama</div><div class="landing-sub">Centro de Informacion y Documentacion — CID</div></div>
@@ -219,9 +216,10 @@ window.onerror=function(msg,src,line,col,err){
       <button class="lcard-btn" style="background:#7C3AED;">Ver historial &#8594;</button>
     </div>
 </div>
+</div>
 
 
-<div class="app" id="app-gerencia">
+<div class="app" id="app-gerencia" style="width:100%;box-sizing:border-box;">
   <div class="header"><div class="header-inner">
     <div class="logo"><div class="logo-dot"></div><div><div class="logo-text">Vinatea &amp; Toyama · Gerencia</div><div class="logo-sub">Panel de Homologación · Reporte Total</div></div></div>
     <div class="header-right"><div class="hbadge">08-06-2026</div><button class="switch-btn" onclick="switchView()">&#8644; Cambiar vista</button></div>
@@ -237,7 +235,7 @@ window.onerror=function(msg,src,line,col,err){
   <div class="footer">CID · Vinatea &amp; Toyama · Panel de Homologación Reporte Total — 08 junio 2026</div>
 </div>
 
-<div class="app" id="app-facturacion">
+<div class="app" id="app-facturacion" style="width:100%;box-sizing:border-box;">
   <div class="header"><div class="header-inner">
     <div class="logo"><div class="logo-dot"></div><div><div class="logo-text">Vinatea &amp; Toyama · Facturación</div><div class="logo-sub">Panel de Homologación · Reporte Total</div></div></div>
     <div class="header-right">
@@ -436,11 +434,12 @@ window.onerror=function(msg,src,line,col,err){
 
 </div>
 
-<div class="app" id="app-general">
+<div class="app" id="app-general" style="width:100%;box-sizing:border-box;">
   <div class="header"><div class="header-inner">
     <div class="logo"><div class="logo-dot"></div><div><div class="logo-text">Vinatea &amp; Toyama &#183; Vista General</div><div class="logo-sub">Para Facturacion y Paralegal &mdash; Sem. 19</div></div></div>
     <div class="header-right">
       <div class="hbadge">08-06-2026</div>
+    <button class="switch-btn" style="background:#1F3864;margin-right:6px;" onclick="openDictModal()">&#128218; Diccionario</button>
     <button class="switch-btn" onclick="switchView()">&#8644; Cambiar vista</button>
     </div>
   </div></div>
@@ -454,7 +453,7 @@ window.onerror=function(msg,src,line,col,err){
     <div style="padding:0 28px 14px;"><div class="stb"><button class="dl-btn" onclick="dlGen('mbsin')">&#8659; Descargar CSV</button></div></div>
     <div style="padding:0 28px;"><div class="tw"><div class="tb"><span class="tt">SI en MB &middot; NO en Fact.</span><span class="tc" id="gc1"></span><input class="sri" id="gs1" type="text" placeholder="Buscar..." oninput="ftGen('mbsin','gc1','gtb1','gs1')"></div>
     <div class="to"><div id="gyf1" class="yr-bar"></div>
-  <div style="display:grid;background:#073552;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;grid-template-columns:2fr 0.7fr 2fr 2fr 1.2fr;"><div style="padding:9px 12px;">Expediente MB</div><div style="padding:9px 12px;">Cód.TB</div><div style="padding:9px 12px;">CLI.MB Facturable</div><div style="padding:9px 12px;">CLI.MB Representado</div><div style="padding:9px 12px;">Supervisor</div></div><div id="gtb1" style="max-height:380px;overflow-y:auto;"></div></div></div></div>
+  <div style="display:grid;background:#073552;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;grid-template-columns:2fr 0.7fr 2fr 2fr 1.2fr;"><div style="padding:9px 12px;">Expediente MB</div><div style="padding:9px 12px;">Cód.TB</div><div style="padding:9px 12px;">CLI.MB Facturable</div><div style="padding:9px 12px;">CLI.MB Representado</div><div style="padding:9px 12px;">Supervisor</div></div><div id="gtb1" style="width:100%;max-height:380px;overflow-y:auto;display:block;"></div></div></div></div>
   </div>
   <div id="page-gp-3" class="page">
     <div class="tph w" style="background:#fff;border-radius:12px;padding:16px 20px;margin:24px 28px 16px;border-left:4px solid var(--warn);"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">Expedientes discrepantes entre MB y Facturacion</div><div style="font-size:12px;color:var(--t2);line-height:1.55;">El titulo en Facturacion tiene errores respecto al codigo en MB. La columna <strong style="font-weight:600;">Expediente correcto (MB)</strong> muestra el codigo correcto.</div></div>
@@ -465,7 +464,7 @@ window.onerror=function(msg,src,line,col,err){
     </div></div>
     <div style="padding:0 28px;"><div class="tw"><div class="tb"><span class="tt" id="gt3">Exps. discrepantes &mdash; Activos</span><span class="tc" id="gc3"></span><input class="sri" id="gs3" type="text" placeholder="Buscar..." oninput="ftGen('cod','gc3','gtb3','gs3')"></div>
     <div class="to"><div id="gyf3" class="yr-bar"></div>
-  <div style="display:grid;background:#073552;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;grid-template-columns:0.8fr 0.6fr 1.2fr 1.2fr 1.5fr 1.5fr 0.5fr 1fr;"><div style="padding:9px 12px;">Cód.Fact.</div><div style="padding:9px 12px;">ID MB</div><div style="padding:9px 12px;">Exp.Fact.</div><div style="padding:9px 12px;">Exp.MB Correcto</div><div style="padding:9px 12px;">CLI.Facturación</div><div style="padding:9px 12px;">CLI.MB Facturable</div><div style="padding:9px 12px;">Activo</div><div style="padding:9px 12px;">Razón</div></div><div id="gtb3" style="max-height:380px;overflow-y:auto;"></div></div></div></div>
+  <div style="display:grid;background:#073552;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;grid-template-columns:0.8fr 0.6fr 1.2fr 1.2fr 1.5fr 1.5fr 0.5fr 1fr;"><div style="padding:9px 12px;">Cód.Fact.</div><div style="padding:9px 12px;">ID MB</div><div style="padding:9px 12px;">Exp.Fact.</div><div style="padding:9px 12px;">Exp.MB Correcto</div><div style="padding:9px 12px;">CLI.Facturación</div><div style="padding:9px 12px;">CLI.MB Facturable</div><div style="padding:9px 12px;">Activo</div><div style="padding:9px 12px;">Razón</div></div><div id="gtb3" style="width:100%;max-height:380px;overflow-y:auto;display:block;"></div></div></div></div>
   </div>
   <div id="page-gp-5" class="page">
     <div class="tph o" style="background:#fff;border-radius:12px;padding:16px 20px;margin:24px 28px 16px;border-left:4px solid var(--orange);"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">El expediente coincide con MB activo pero el cliente es genuinamente diferente</div><div style="font-size:12px;color:var(--t2);">Validar con el Socio si es cambio de razon social o error de registro.</div></div>
@@ -476,12 +475,12 @@ window.onerror=function(msg,src,line,col,err){
     </div></div>
     <div style="padding:0 28px;"><div class="tw"><div class="tb"><span class="tt" id="gt5">Cliente distinto &mdash; Activos</span><span class="tc" id="gc5"></span><input class="sri" id="gs5" type="text" placeholder="Buscar..." oninput="ftGen('diff','gc5','gtb5','gs5')"></div>
     <div class="to"><div id="gyf5" class="yr-bar"></div>
-  <div style="display:grid;background:#073552;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;grid-template-columns:0.8fr 0.6fr 1.2fr 1.5fr 1.5fr 1.5fr 0.5fr 1fr;"><div style="padding:9px 12px;">Cód.Fact.</div><div style="padding:9px 12px;">ID MB</div><div style="padding:9px 12px;">Expediente MB</div><div style="padding:9px 12px;">CLI.Facturación</div><div style="padding:9px 12px;">CLI.MB Facturable</div><div style="padding:9px 12px;">CLI.MB Representado</div><div style="padding:9px 12px;">Activo</div><div style="padding:9px 12px;">Razón</div></div><div id="gtb5" style="max-height:380px;overflow-y:auto;"></div></div></div></div>
+  <div style="display:grid;background:#073552;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;grid-template-columns:0.8fr 0.6fr 1.2fr 1.5fr 1.5fr 1.5fr 0.5fr 1fr;"><div style="padding:9px 12px;">Cód.Fact.</div><div style="padding:9px 12px;">ID MB</div><div style="padding:9px 12px;">Expediente MB</div><div style="padding:9px 12px;">CLI.Facturación</div><div style="padding:9px 12px;">CLI.MB Facturable</div><div style="padding:9px 12px;">CLI.MB Representado</div><div style="padding:9px 12px;">Activo</div><div style="padding:9px 12px;">Razón</div></div><div id="gtb5" style="width:100%;max-height:380px;overflow-y:auto;display:block;"></div></div></div></div>
   </div>
   <div class="footer">CID &middot; Vinatea &amp; Toyama &middot; Vista General &mdash; Reporte Total</div>
 </div>
 
-<div class="app" id="app-generador">
+<div class="app" id="app-generador" style="width:100%;box-sizing:border-box;">
   <div class="header"><div class="header-inner">
     <div class="logo"><div class="logo-dot"></div><div><div class="logo-text">Vinatea &amp; Toyama &#183; Generador</div><div class="logo-sub">Sube los Excel y genera el panel actualizado</div></div></div>
     <div class="header-right"><button class="switch-btn" onclick="switchView()">&#8644; Volver</button></div>
@@ -557,7 +556,7 @@ window.onerror=function(msg,src,line,col,err){
 
 </div>
 
-<div class="app" id="app-historial">
+<div class="app" id="app-historial" style="width:100%;box-sizing:border-box;">
   <div class="header"><div class="header-inner">
     <div class="logo"><div class="logo-dot"></div><div>
       <div class="logo-text">Vinatea &amp; Toyama &middot; Historial</div>
@@ -731,15 +730,26 @@ function enterApp(v){
   else{_doEnterApp(v);}
 }
 function _doEnterApp(v){
-  document.getElementById('landing').style.display='none';
+  var _l=document.getElementById('landing');
+  if(_l){_l.style.display='none';}
   ['gerencia','facturacion','general','generador','historial'].forEach(function(id){
-    var el=document.getElementById('app-'+id);if(el)el.classList.toggle('visible',v===id);
+    var el=document.getElementById('app-'+id);
+    if(!el)return;
+    el.style.cssText='';
+    if(v===id){
+      el.classList.add('visible');
+    } else {
+      el.classList.remove('visible');
+    }
   });
-  if(v==='gerencia')buildG();
-  else if(v==='facturacion'){buildF();setTimeout(initCV,200);}
-  else if(v==='general')buildGeneral();
-  else if(v==='generador')initGen();
-  else if(v==='historial')initHistorial();
+  function run(){
+    if(v==='gerencia')buildG();
+    else if(v==='facturacion'){buildF();setTimeout(initCV,200);}
+    else if(v==='general')buildGeneral();
+    else if(v==='generador')initGen();
+    else if(v==='historial')initHistorial();
+  }
+  if(v==='general'){setTimeout(run,50);}else{run();}
 }
 function switchView(){
   ['gerencia','facturacion','general','generador','historial'].forEach(function(id){
@@ -1358,25 +1368,7 @@ var genSubState={cod:'act',diff:'act'};
 var genRows={};
 
 function buildGeneral(){
-  // FULL DIAGNOSTIC
-  var ag=document.getElementById('app-general');
-  var t1=document.getElementById('gtb1');
-  var cs0=ag?window.getComputedStyle(ag):{};
-  console.log('app-general: display='+cs0.display+' visibility='+cs0.visibility+' opacity='+cs0.opacity+' height='+cs0.height+' overflow='+cs0.overflow);
-  if(ag){
-    var r=ag.getBoundingClientRect();
-    console.log('app-general rect: top='+r.top+' left='+r.left+' w='+r.width+' h='+r.height);
-  }
-  if(t1){
-    var r2=t1.getBoundingClientRect();
-    var cs3=window.getComputedStyle(t1);
-    console.log('gtb1: display='+cs3.display+' height='+cs3.height+' rect.h='+r2.height+' rect.top='+r2.top);
-    // Force visible test
-    t1.style.cssText='background:red!important;min-height:200px!important;display:block!important;color:white!important;font-size:20px!important;padding:20px!important;position:relative!important;z-index:9999!important;';
-    t1.innerHTML='<b>TEST '+DATA.vt_activos_sin.length+' FILAS</b>';
-    var r3=t1.getBoundingClientRect();
-    console.log('gtb1 after force: rect.h='+r3.height+' rect.top='+r3.top);
-  }
+
 
   setText('gn1',S.vt_activos_sin);
   setText('gn3',S.codigo_incorrecto_act);
@@ -1468,8 +1460,10 @@ function genRdr(name,data,tbId,cntId,selectedYear){
   if(!filtered||!filtered.length){tb.innerHTML='<div style="padding:20px;text-align:center;color:#9CA3AF;font-size:13px;">Sin resultados.</div>';if(cnt)cnt.textContent='0 registros';return;}
   try{
     var _gc={'mbsin':'2fr 0.7fr 2fr 2fr 1.2fr','cod':'0.8fr 0.6fr 1.2fr 1.2fr 1.5fr 1.5fr 0.5fr 1fr','diff':'0.8fr 0.6fr 1.2fr 1.5fr 1.5fr 1.5fr 0.5fr 1fr'};
-    var _rs='display:grid;grid-template-columns:'+(_gc[name]||'1fr')+';border-bottom:1px solid #E2E8F0;font-size:12px;color:#1A202C;';
-    var _cs='padding:9px 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    var _gc2=_gc[name]||'1fr 1fr 1fr';
+    var _rs='display:grid!important;grid-template-columns:'+_gc2+';border-bottom:1px solid #E2E8F0;font-size:12px;color:#1A202C;width:100%;position:relative;';
+    var _cs='padding:8px 10px;min-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1A202C;';
+    tb.style.cssText='display:block!important;width:100%!important;min-height:20px!important;';
     tb.innerHTML=filtered.map(function(r){
       return '<div style="'+_rs+'">'+GEN_COLS[name].cols.map(function(fn){
         try{var v=fn(r);return v.replace(/^<td[^>]*>/,'<div style="'+_cs+'">').replace(/<\/td>$/,'</div>');}
@@ -1477,6 +1471,19 @@ function genRdr(name,data,tbId,cntId,selectedYear){
       }).join('')+'</div>';
     }).join('');
     if(cnt)cnt.textContent=filtered.length+(yr&&yr!=='Todos'?' ('+yr+')':'')+' registros';
+    var _dbg=window.getComputedStyle(tb);
+    console.log('[OK] genRdr '+name+': '+filtered.length+' rows');
+    console.log('tb computed: display='+_dbg.display+' h='+_dbg.height+' minH='+_dbg.minHeight+' offsetH='+tb.offsetHeight);
+    // Walk up parent chain
+    var _p=tb.parentElement;var _chain=[];
+    while(_p&&_p!==document.body){
+      var _pc=window.getComputedStyle(_p);
+      _chain.push(_p.className||_p.id||_p.tagName+':d='+_pc.display+' h='+_pc.height+' oh='+_p.offsetHeight);
+      _p=_p.parentElement;
+    }
+    console.log('Parent chain: '+_chain.join(' | '));
+    // Log first row HTML
+    if(tb.children[0])console.log('First row: '+tb.children[0].outerHTML.substring(0,200));
   }catch(e){
     tb.innerHTML='<div style="padding:16px;color:#991B1B;font-size:12px;">ERR: '+e.message+'</div>';
     if(cnt)cnt.textContent='Error';
@@ -1500,18 +1507,7 @@ function dlGen(name){
   var a=document.createElement('a');a.href=url;a.download='VT_General_'+name+'_S19.csv';a.click();URL.revokeObjectURL(url);
 }
 
-/* ── UPDATE enterApp ── */
-var _origEnterApp=enterApp;
-enterApp=function(v){
-  document.getElementById('landing').style.display='none';
-  ['gerencia','facturacion','general','generador'].forEach(function(id){
-    var el=document.getElementById('app-'+id);if(el)el.classList.toggle('visible',v===id);
-  });
-  if(v==='gerencia')buildG();
-  else if(v==='facturacion'){buildF();setTimeout(initCV,200);}
-  else if(v==='general')buildGeneral();
-  else if(v==='generador')initGen();
-};
+/* ── enterApp unificado en _doEnterApp arriba ── */
 
 /* ── VISTA GENERADOR ── */
 var genData={mb:null,fact:null,prev:null};
